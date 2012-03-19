@@ -1,0 +1,173 @@
+--- a/rebuildd-job
++++ b/rebuildd-job
+@@ -73,8 +73,10 @@ def add():
+             Rebuildd().add_job(args[0], args[1], args[2], args[3], mailto=None, arch=args[4])
+         if len(args) == 6:
+             Rebuildd().add_job(args[0], args[1], args[2], args[3], mailto=args[5], arch=args[4])
++        if len(args) == 7:
++            Rebuildd().add_job(args[0], args[1], args[2], args[3], mailto=args[5], arch=args[4], repo=args[6])
+     if empty:
+-        print "E: usage: %s\n   read <package> <version> <priority> <dist> [arch] [mailto] from stdin" % sys.argv[0]
++        print "E: usage: %s\n   read <package> <version> <priority> <dist> [arch] [mailto] [repo] from stdin" % sys.argv[0]
+         sys.exit(1)
+ 
+ def add_quinn_diff(dist):
+--- a/rebuildd/Distribution.py
++++ b/rebuildd/Distribution.py
+@@ -40,7 +40,7 @@ class Distribution(object):
+ 
+         try:
+ 	    args = { 'd': self.name, 'a': self.arch, 'v': package.version, \
+-                'p': package.name }
++                'p': package.name, 'r': package.repo }
+             t = Template(RebuilddConfig().get('build', 'source_cmd'))
+ 	    return t.safe_substitute(**args)
+         except TypeError, error:
+@@ -54,7 +54,7 @@ class Distribution(object):
+         try:
+             index = package.version.index(":")
+             args = { 'd': self.name, 'a': self.arch, \
+-                'v': package.version[index+1:], 'p': package.name }
++                'v': package.version[index + 1:], 'p': package.name, 'r': package.repo }
+             t = Template(RebuilddConfig().get('build', 'build_cmd'))
+ 	    return t.safe_substitute(**args)
+         except ValueError:
+@@ -62,7 +62,7 @@ class Distribution(object):
+ 
+         try:
+             args = { 'd': self.name, 'a': self.arch, \
+-                'v': package.version, 'p': package.name }
++                'v': package.version, 'p': package.name, 'r': package.repo }
+             t = Template(RebuilddConfig().get('build', 'build_cmd'))
+ 	    return t.safe_substitute(**args)
+         except TypeError, error:
+@@ -77,7 +77,7 @@ class Distribution(object):
+             return None
+         try:
+             args = { 'd': self.name, 'a': self.arch, \
+-                'v': package.version, 'p': package.name }
++                'v': package.version, 'p': package.name, 'r': package.repo }
+             t = Template(cmd)
+ 	    return t.safe_substitute(**args)
+         except TypeError, error:
+--- a/rebuildd/Job.py
++++ b/rebuildd/Job.py
+@@ -62,8 +62,8 @@ class Job(threading.Thread, sqlobject.SQ
+         """Override setattr to log build status changes"""
+ 
+         if name == "status":
+-            RebuilddLog.info("Job %s for %s_%s on %s/%s changed status from %s to %s"\
+-                    % (self.id, self.package.name, self.package.version, 
++            RebuilddLog.info("Job %s for %s_%s, from %s, on %s/%s changed status from %s to %s"\
++                    % (self.id, self.package.name, self.package.version, self.package.repo,
+                        self.dist, self.arch,
+                        JobStatus.whatis(self.status),
+                        JobStatus.whatis(value)))
+@@ -93,8 +93,8 @@ class Job(threading.Thread, sqlobject.SQ
+ 
+         try:
+             with open(self.logfile, "w") as build_log:
+-                build_log.write("Automatic build of %s_%s on %s for %s/%s by rebuildd %s\n" % \
+-                                 (self.package.name, self.package.version,
++                build_log.write("Automatic build of %s_%s, from %s, on %s for %s/%s by rebuildd %s\n" % \
++                                 (self.package.name, self.package.version, self.package.repo,
+                                   self.host, self.dist, self.arch, __version__))
+                 build_log.write("Build started at %s\n" % self.build_start)
+                 build_log.write("******************************************************************************\n")
+@@ -227,10 +227,11 @@ class Job(threading.Thread, sqlobject.SQ
+             msg['To'] = RebuilddConfig().get('mail', 'mailto')
+         msg['From'] = RebuilddConfig().get('mail', 'from')
+         msg['Subject'] = RebuilddConfig().get('mail', 'subject_prefix') + \
+-                                 " Log for %s build of %s_%s on %s/%s" % \
++                                 " Log for %s build of %s_%s, from %s, on %s/%s" % \
+                                  (bstatus,
+                                   self.package.name, 
+                                   self.package.version,
++                                  self.package.repo,
+                                   self.dist,
+                                   self.arch)
+         msg['X-Rebuildd-Version'] = __version__
+@@ -257,8 +258,8 @@ class Job(threading.Thread, sqlobject.SQ
+         return True
+ 
+     def __str__(self):
+-        return "I: Job %s for %s_%s is status %s on %s for %s/%s" % \
+-                (self.id, self.package.name, self.package.version, self.host,
++        return "I: Job %s for %s_%s, from %s, is status %s on %s for %s/%s" % \
++                (self.id, self.package.name, self.package.version, self.package.repo, self.host,
+                  JobStatus.whatis(self.status), self.dist, self.arch)
+ 
+     def is_allowed_to_build(self):
+--- a/rebuildd/Package.py
++++ b/rebuildd/Package.py
+@@ -27,6 +27,7 @@ class Package(sqlobject.SQLObject): 
+     name = sqlobject.StringCol() 
+     version = sqlobject.StringCol(default=None) 
+     priority = sqlobject.StringCol(default=None)
++    repo = sqlobject.StringCol(default=None)
+ 
+     @staticmethod
+     def version_compare(a, b):
+--- a/rebuildd/Rebuildd.py
++++ b/rebuildd/Rebuildd.py
+@@ -286,7 +286,7 @@ class Rebuildd(object):
+ 
+         return True
+ 
+-    def add_job(self, name, version, priority, dist, mailto=None, arch=None):
++    def add_job(self, name, version, priority, dist, mailto=None, arch=None, repo=None):
+         """Add a job"""
+ 
+         if not arch:
+@@ -297,18 +297,18 @@ class Rebuildd(object):
+                            % (name, version, dist, arch))
+             return False
+ 
+-        pkgs = Package.selectBy(name=name, version=version)
++        pkgs = Package.selectBy(name=name, version=version, repo=repo)
+         if pkgs.count():
+             # If several packages exists, just take the first
+             pkg = pkgs[0]
+         else:
+             # Maybe we found no packages, so create a brand new one!
+-            pkg = Package(name=name, version=version, priority=priority)
++            pkg = Package(name=name, version=version, priority=priority, repo=repo)
+ 
+         jobs_count = Job.selectBy(package=pkg, dist=dist, arch=arch, mailto=mailto, status=JobStatus.WAIT).count()
+         if jobs_count:
+-            RebuilddLog.error("Job already existing for %s_%s on %s/%s, don't adding it" \
+-                           % (pkg.name, pkg.version, dist, arch))
++            RebuilddLog.error("Job already existing for %s_%s, from %s, on %s/%s, don't adding it" \
++                           % (pkg.name, pkg.version, pkg.repo, dist, arch))
+             return False
+ 
+         job = Job(package=pkg, dist=dist, arch=arch)
+@@ -318,8 +318,8 @@ class Rebuildd(object):
+ 
+         log = Log(job=job)
+ 
+-        RebuilddLog.info("Added job for %s_%s on %s/%s for %s" \
+-                      % (name, version, dist, arch, mailto))
++        RebuilddLog.info("Added job for %s_%s, from %s, on %s/%s for %s" \
++                      % (name, version, repo, dist, arch, mailto))
+         return True
+ 
+     def add_deps(self, job_id, dependency_ids):
+--- a/rebuildd/RebuilddNetworkClient.py
++++ b/rebuildd/RebuilddNetworkClient.py
+@@ -164,6 +164,15 @@ class RebuilddNetworkClient(threading.Th
+                                         dist=args[4], 
+                                         arch=args[5],
+                                         mailto=args[6])
++
++        if len(args) == 8:
++            ret = self.rebuildd.add_job(name=args[1], 
++                                        version=args[2],
++                                        priority=args[3],
++                                        dist=args[4], 
++                                        arch=args[5],
++                                        mailto=args[6],
++                                        repo=args[7])
+         
+         if ret:
+             return "I: job added\n"

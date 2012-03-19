@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
-
 # export DH_VERBOSE=1
+
+WITH_PYTHON2 = $(shell test -f /usr/bin/dh_python2 && echo "--with python2")
 
 ifneq (,$(findstring UNRELEASED,$(shell head -n 1 debian/changelog)))
 	VERSION="$(shell git describe 2>/dev/null || echo devel)"
@@ -9,7 +10,7 @@ else
 endif
 
 %:
-	dh --with python2 $@
+	dh $@ ${WITH_PYTHON2}
 
 override_dh_clean:
 	dh_clean rebuildd.1 rebuildd-job.1 debian/rebuilddrc
