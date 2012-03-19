@@ -1,0 +1,222 @@
+rebuildd (0.4.1) unstable; urgency=low
+
+  [ Daniel Dehennin ]
+  * [10b50e1] Fix unit tests: Clean database drop and disable
+    TestRebuildd.test_release_jobs().
+    * rebuildd/Rebuildd.py (Rebuildd.init): Add sqlobject connection as
+      "hidden" attribute to clear and drop the database in tests.
+    * rebuildd/Job.py (Job.__init__): Auto vivification of the log, required
+      when the job is added through Rebuildd().add_job().
+    * tests/RebuilddTestSetup.py: Import Log class to create the
+      corresponding table.
+      (rebuildd_global_test_setup): Drop tables before creating them if they
+      exist.
+      (rebuildd_global_test_teardown): Clear the database as much as possible.
+    * tests/TestDistribution.py: Import new teardown helper.
+     (TestDistribution.tearDown): Use the new teardown helper.
+    * tests/TestJob.py: Import new teardown helper.
+     (TestJob.tearDown): Use the new teardown helper.
+     (TestJob.test_DB_OK): Test if the database is created.
+     (TestJob.test_send_build_log): Create a fake log file or send_build_log
+     will raise an OSError.
+    * tests/TestRebuildd.py: Import new teardown helper.
+     (TestRebuildd.tearDown): Use the new teardown helper.
+     (TestRebuildd.test_release_jobs): Disable because is does not work with
+      database cleanup.
+     (TestRebuildd.test_get_new_jobs): Fix distribution to create the job
+      with the default configuration.
+     (TestRebuildd.test_fix_job): Ditoo.
+     (TestRebuildd): Remove useless cleanup since database is dropped on
+      tearDown. (Closes: #657887)
+  * [037e391] Switch from CDBS to debhelper and from python-support to
+    dh_python2.
+    * debian/control (Build-Depends): Remove cdbs.
+      Replace python (>= 2.5) by python-all-dev (>= 2.6.6-3) for dh_python2.
+      Remove deprecated python-support.
+    * debian/rebuildd.install: Install rebuildd.py binary
+    * debian/rules: Remove CDBS directives.
+      (override_dh_clean): Remove debian/rules generated files.
+      (override_dh_auto_test): Run test suite.
+      (override_dh_auto_build): Generate man pages and default configuration
+      file.
+      (override_dh_installinit): Need two calls to dh_install init for both
+      services.
+      (override_dh_install): Remove rebuildd.py extension.  Replace version
+      in python libraries.
+    * debian/pyversion: Useless with dh_python2.
+
+  [ Julien Danjou ]
+  * Fix silents error in rebuildd-job and jobs sticking in BUILDING state
+    on error (Closes: #570425)
+  * Fix Vcs-Browser
+  * Bump standard version
+
+ -- Julien Danjou <acid@debian.org>  Fri, 09 Mar 2012 11:46:21 +0100
+
+rebuildd (0.4) unstable; urgency=low
+
+  [ Julien Danjou ]
+  * Bump version to indicate schema change and add a note in NEWS.Debian
+    (Closes: #632525)
+  * Bump standard version
+
+  [ Daniel Dehennin ]
+  * Fix homepage URL
+  * Make copyright format DEP5 valid
+  * Store log in database (Closes: #657635)
+  * Add missing status in the Web interface (Closes: #657636)
+
+ -- Julien Danjou <acid@debian.org>  Fri, 27 Jan 2012 17:47:37 +0100
+
+rebuildd (0.3.11) unstable; urgency=low
+
+  * Make SMTP host configurable (Closes: #570426)
+  * Use bash to call 00_update_build_system (Closes: #632055)
+
+ -- Julien Danjou <acid@debian.org>  Wed, 29 Jun 2011 16:13:22 +0200
+
+rebuildd (0.3.10) unstable; urgency=low
+
+  * Do not raise string exceptions (Closes: #585348)
+
+ -- Julien Danjou <acid@debian.org>  Thu, 10 Jun 2010 12:32:01 +0200
+
+rebuildd (0.3.9) unstable; urgency=low
+
+  * Update for python-apt API transition (Closes: #571767)
+
+ -- Julien Danjou <acid@debian.org>  Tue, 02 Mar 2010 13:56:27 +0100
+
+rebuildd (0.3.8) unstable; urgency=low
+
+  * Fix rebuildd-init-build-system advices on build_cmd
+    (Closes: #561926)
+  * Bump standard version
+  * Change format source to 3.0
+
+ -- Julien Danjou <acid@debian.org>  Mon, 08 Feb 2010 14:50:51 +0100
+
+rebuildd (0.3.7) unstable; urgency=low
+
+  * Fix incorrect dependencies on init script (Closes: #541546)
+  * Add missing entry in rebuildd-job manpage (Closes: #553421)
+  * Bump standard version
+
+ -- Julien Danjou <acid@debian.org>  Wed, 18 Nov 2009 20:17:47 +0100
+
+rebuildd (0.3.6) unstable; urgency=low
+
+  * Fix bug with new webpy in rebuildd-httpd (Closes: #536372)
+  * Fix bashisms in maintenance script (Closes: #530179)
+  * Add homepage (Closes: #529714)
+  * Bump standard version
+
+ -- Julien Danjou <acid@debian.org>  Tue, 04 Aug 2009 12:34:53 +0200
+
+rebuildd (0.3.5) unstable; urgency=low
+
+  * Bump standard version
+  * Fix arch usage in httpd (Closes: #486146)
+  * Fix typo in rebuildd.default (Closes: #497275)
+  * Support passing other pbuilder options to rebuildd-init-build-system
+    (Closes: #497295)
+
+ -- Julien Danjou <acid@debian.org>  Sun, 31 Aug 2008 20:51:29 +0200
+
+rebuildd (0.3.4) unstable; urgency=low
+
+  * Add {} around variable names (Closes: #486143)
+
+ -- Julien Danjou <acid@debian.org>  Fri, 13 Jun 2008 20:07:21 +0200
+
+rebuildd (0.3.3) unstable; urgency=low
+
+  * Switch to python2.5 which is now default
+
+ -- Julien Danjou <acid@debian.org>  Wed, 07 May 2008 13:42:28 +0200
+
+rebuildd (0.3.2) unstable; urgency=low
+
+  * Set ip to 127.0.0.1 by default for obvious security reason
+  * Fix bashisms in rebuildd-init-build-system (Closes: #455371)
+  * Bump standard version
+  * Fix dependency since python 2.5 is not default
+
+ -- Julien Danjou <acid@debian.org>  Thu, 17 Apr 2008 11:35:22 +0200
+
+rebuildd (0.3.1) unstable; urgency=low
+
+  * Fix maintenance script for $arch support
+
+ -- Julien Danjou <acid@debian.org>  Wed, 05 Dec 2007 08:17:29 +0100
+
+rebuildd (0.3.0) unstable; urgency=low
+
+  * Store timestamp of changed status
+  * Add 'build_more_recent' option, to build only the
+    more recent version of a package and set others to GIVEUP
+  * Add a 'build_arch_any' to build (or not) package we want to build anywhere
+    This works like another arch
+  * Add 'priority' to package
+  * Add quinn-diff support to rebuildd-job
+  * Fix bashim in debian/rules
+  * Add python-apt to build-deps
+  * Add some doc in README.Debian (Closes: #443636)
+  * Fix Web templates (Closes: #443668)
+  * Add support for building more than one arch on a node (Closes: #447759)
+
+ -- Julien Danjou <acid@debian.org>  Fri, 30 Nov 2007 14:29:48 +0000
+
+rebuildd (0.2.2) unstable; urgency=low
+
+  * Add rebuildd-job manpage
+  * Actually we shouldn't add jobs if they are already in database
+    If needed, status should be changed
+  * Add delete to rebuildd-job
+  * Add a fix option to fix database state if rebuildd crashed
+  * Remove send_build_logs, not used anymore, cleaning up code
+  * Do not restart on upgrade
+  * Print all active thread count in logs
+  * Now we handle 3 types of build failures, more clear
+
+ -- Julien Danjou <acid@debian.org>  Sat, 11 Aug 2007 02:35:22 +0200
+
+rebuildd (0.2.1) unstable; urgency=low
+
+  * Add --download-only to apt-get source by default
+    and put only one -q
+  * If a job is building, don't allow to add it
+  * Rewrite rebuildd-job stats function with SQL,
+    very very very very very very very very faster
+  * Add headers and footers to build logs
+  * Dont't try to resend old mails, otherwise we send it
+    twice sometimes.
+  * Fix a bug when database is empty in rebuildd-job stats
+  * Limit job searching to max_jobs to be more faster
+  * Fix a bug with event/lock, which cancel all jobs at once
+
+ -- Julien Danjou <acid@debian.org>  Tue, 07 Aug 2007 20:17:14 +0200
+
+rebuildd (0.2.0) unstable; urgency=low
+
+  * Upload to Debian (Closes: #432302)
+  * Stock builder hostname in job table
+  * Add new max_jobs config var, used to load max_jobs new jobs
+    This adds a new state WAIT_LOCKED for locking jobs handled by a build.
+  * Handle SIGINT like SIGTERM
+  * Don't stock build_time, stock build_start and build_end
+  * Move http server outside, and standalone
+  * Create unit tests
+  * Init scripts now use LSB
+  * Rewrite Web server and interface with web.py
+    With new templates, thanks Clément Danjou (my little bro)
+    for them. :-) I still suck with HTML.
+
+ -- Julien Danjou <acid@debian.org>  Tue, 10 Jul 2007 10:36:33 +0200
+
+rebuildd (0.1.0) unstable; urgency=low
+
+  * Initial release
+
+ -- Julien Danjou <acid@debian.org>  Sat, 07 Jul 2007 14:44:58 +0200
+
