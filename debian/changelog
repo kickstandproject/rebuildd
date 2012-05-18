@@ -1,4 +1,4 @@
-rebuildd (0.4.1kickstand0) precise; urgency=low
+rebuildd (0.4.1kickstand0) UNRELEASED; urgency=low
 
   * debian/patches/multi-repo-support.diff:
     - Add multi repo support
@@ -7,7 +7,7 @@ rebuildd (0.4.1kickstand0) precise; urgency=low
   * debian/rules:
     - Allow source-only builds for older OSs
 
- -- Paul Belanger <paul.belanger@polybeacon.com>  Mon, 19 Mar 2012 12:36:53 -0400
+ -- Paul Belanger <paul.belanger@polybeacon.com>  Fri, 18 May 2012 14:18:29 -0400
 
 rebuildd (0.4.1) unstable; urgency=low
 
