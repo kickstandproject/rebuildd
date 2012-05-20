@@ -1,4 +1,4 @@
-rebuildd (0.4.1kickstand0~ppa5.1) UNRELEASED; urgency=low
+rebuildd (1:0.4.1kickstand0) UNRELEASED; urgency=low
 
   * debian/patches/multi-repo-support.diff:
     - Add multi repo support
@@ -6,8 +6,10 @@ rebuildd (0.4.1kickstand0~ppa5.1) UNRELEASED; urgency=low
     - Add kickstand project information
   * debian/rules:
     - Allow source-only builds for older OSs
+  * debian/changelog:
+    - Bump epoch to always override upstream
 
- -- Paul Belanger <paul.belanger@polybeacon.com>  Fri, 18 May 2012 14:33:42 -0400
+ -- Paul Belanger <paul.belanger@polybeacon.com>  Sun, 20 May 2012 13:16:21 -0400
 
 rebuildd (0.4.1) unstable; urgency=low
 
