@@ -62,8 +62,8 @@ class Job(threading.Thread, sqlobject.SQLObject):
         """Override setattr to log build status changes"""
 
         if name == "status":
-            RebuilddLog.info("Job %s for %s_%s on %s/%s changed status from %s to %s"\
-                    % (self.id, self.package.name, self.package.version, 
+            RebuilddLog.info("Job %s for %s_%s, from %s, on %s/%s changed status from %s to %s"\
+                    % (self.id, self.package.name, self.package.version, self.package.repo,
                        self.dist, self.arch,
                        JobStatus.whatis(self.status),
                        JobStatus.whatis(value)))
@@ -93,8 +93,8 @@ class Job(threading.Thread, sqlobject.SQLObject):
 
         try:
             with open(self.logfile, "w") as build_log:
-                build_log.write("Automatic build of %s_%s on %s for %s/%s by rebuildd %s\n" % \
-                                 (self.package.name, self.package.version,
+                build_log.write("Automatic build of %s_%s, from %s, on %s for %s/%s by rebuildd %s\n" % \
+                                 (self.package.name, self.package.version, self.package.repo,
                                   self.host, self.dist, self.arch, __version__))
                 build_log.write("Build started at %s\n" % self.build_start)
                 build_log.write("******************************************************************************\n")
@@ -227,10 +227,11 @@ class Job(threading.Thread, sqlobject.SQLObject):
             msg['To'] = RebuilddConfig().get('mail', 'mailto')
         msg['From'] = RebuilddConfig().get('mail', 'from')
         msg['Subject'] = RebuilddConfig().get('mail', 'subject_prefix') + \
-                                 " Log for %s build of %s_%s on %s/%s" % \
+                                 " Log for %s build of %s_%s, from %s, on %s/%s" % \
                                  (bstatus,
                                   self.package.name, 
                                   self.package.version,
+                                  self.package.repo,
                                   self.dist,
                                   self.arch)
         msg['X-Rebuildd-Version'] = __version__
@@ -257,8 +258,8 @@ class Job(threading.Thread, sqlobject.SQLObject):
         return True
 
     def __str__(self):
-        return "I: Job %s for %s_%s is status %s on %s for %s/%s" % \
-                (self.id, self.package.name, self.package.version, self.host,
+        return "I: Job %s for %s_%s, from %s, is status %s on %s for %s/%s" % \
+                (self.id, self.package.name, self.package.version, self.package.repo, self.host,
                  JobStatus.whatis(self.status), self.dist, self.arch)
 
     def is_allowed_to_build(self):

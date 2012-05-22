@@ -73,8 +73,10 @@ def add():
             Rebuildd().add_job(args[0], args[1], args[2], args[3], mailto=None, arch=args[4])
         if len(args) == 6:
             Rebuildd().add_job(args[0], args[1], args[2], args[3], mailto=args[5], arch=args[4])
+        if len(args) == 7:
+            Rebuildd().add_job(args[0], args[1], args[2], args[3], mailto=args[5], arch=args[4], repo=args[6])
     if empty:
-        print "E: usage: %s\n   read <package> <version> <priority> <dist> [arch] [mailto] from stdin" % sys.argv[0]
+        print "E: usage: %s\n   read <package> <version> <priority> <dist> [arch] [mailto] [repo] from stdin" % sys.argv[0]
         sys.exit(1)
 
 def add_quinn_diff(dist):

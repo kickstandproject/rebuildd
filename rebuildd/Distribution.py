@@ -40,7 +40,7 @@ class Distribution(object):
 
         try:
 	    args = { 'd': self.name, 'a': self.arch, 'v': package.version, \
-                'p': package.name }
+                'p': package.name, 'r': package.repo }
             t = Template(RebuilddConfig().get('build', 'source_cmd'))
 	    return t.safe_substitute(**args)
         except TypeError, error:
@@ -54,7 +54,7 @@ class Distribution(object):
         try:
             index = package.version.index(":")
             args = { 'd': self.name, 'a': self.arch, \
-                'v': package.version[index+1:], 'p': package.name }
+                'v': package.version[index + 1:], 'p': package.name, 'r': package.repo }
             t = Template(RebuilddConfig().get('build', 'build_cmd'))
 	    return t.safe_substitute(**args)
         except ValueError:
@@ -62,7 +62,7 @@ class Distribution(object):
 
         try:
             args = { 'd': self.name, 'a': self.arch, \
-                'v': package.version, 'p': package.name }
+                'v': package.version, 'p': package.name, 'r': package.repo }
             t = Template(RebuilddConfig().get('build', 'build_cmd'))
 	    return t.safe_substitute(**args)
         except TypeError, error:
@@ -77,7 +77,7 @@ class Distribution(object):
             return None
         try:
             args = { 'd': self.name, 'a': self.arch, \
-                'v': package.version, 'p': package.name }
+                'v': package.version, 'p': package.name, 'r': package.repo }
             t = Template(cmd)
 	    return t.safe_substitute(**args)
         except TypeError, error:

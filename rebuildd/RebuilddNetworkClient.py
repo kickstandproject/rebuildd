@@ -164,6 +164,15 @@ class RebuilddNetworkClient(threading.Thread):
                                         dist=args[4], 
                                         arch=args[5],
                                         mailto=args[6])
+
+        if len(args) == 8:
+            ret = self.rebuildd.add_job(name=args[1], 
+                                        version=args[2],
+                                        priority=args[3],
+                                        dist=args[4], 
+                                        arch=args[5],
+                                        mailto=args[6],
+                                        repo=args[7])
         
         if ret:
             return "I: job added\n"

@@ -286,7 +286,7 @@ class Rebuildd(object):
 
         return True
 
-    def add_job(self, name, version, priority, dist, mailto=None, arch=None):
+    def add_job(self, name, version, priority, dist, mailto=None, arch=None, repo=None):
         """Add a job"""
 
         if not arch:
@@ -297,18 +297,18 @@ class Rebuildd(object):
                            % (name, version, dist, arch))
             return False
 
-        pkgs = Package.selectBy(name=name, version=version)
+        pkgs = Package.selectBy(name=name, version=version, repo=repo)
         if pkgs.count():
             # If several packages exists, just take the first
             pkg = pkgs[0]
         else:
             # Maybe we found no packages, so create a brand new one!
-            pkg = Package(name=name, version=version, priority=priority)
+            pkg = Package(name=name, version=version, priority=priority, repo=repo)
 
         jobs_count = Job.selectBy(package=pkg, dist=dist, arch=arch, mailto=mailto, status=JobStatus.WAIT).count()
         if jobs_count:
-            RebuilddLog.error("Job already existing for %s_%s on %s/%s, don't adding it" \
-                           % (pkg.name, pkg.version, dist, arch))
+            RebuilddLog.error("Job already existing for %s_%s, from %s, on %s/%s, don't adding it" \
+                           % (pkg.name, pkg.version, pkg.repo, dist, arch))
             return False
 
         job = Job(package=pkg, dist=dist, arch=arch)
@@ -318,8 +318,8 @@ class Rebuildd(object):
 
         log = Log(job=job)
 
-        RebuilddLog.info("Added job for %s_%s on %s/%s for %s" \
-                      % (name, version, dist, arch, mailto))
+        RebuilddLog.info("Added job for %s_%s, from %s, on %s/%s for %s" \
+                      % (name, version, repo, dist, arch, mailto))
         return True
 
     def add_deps(self, job_id, dependency_ids):

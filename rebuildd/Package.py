@@ -27,6 +27,7 @@ class Package(sqlobject.SQLObject):
     name = sqlobject.StringCol() 
     version = sqlobject.StringCol(default=None) 
     priority = sqlobject.StringCol(default=None)
+    repo = sqlobject.StringCol(default=None)
 
     @staticmethod
     def version_compare(a, b):
