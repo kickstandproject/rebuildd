@@ -221,7 +221,7 @@ class Job(threading.Thread, sqlobject.SQLObject):
             bstatus = "failed"
 
         msg = Message()
-        if self.mailto:
+        if self.mailto is not None:
             msg['To'] = self.mailto
         else:
             msg['To'] = RebuilddConfig().get('mail', 'mailto')
